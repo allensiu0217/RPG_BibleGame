@@ -303,22 +303,46 @@
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Configuration - Get from Global Scope
-        const firebaseConfig = JSON.parse(__firebase_config);
+        // Configuration - Get from Global Scope with Safe Fallback
+        let firebaseConfig;
+        let APP_ID;
+
+        try {
+            if (typeof __firebase_config !== 'undefined') {
+                firebaseConfig = JSON.parse(__firebase_config);
+                APP_ID = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+            } else {
+                throw new Error("Env config missing");
+            }
+        } catch (e) {
+            console.log("Using local/fallback config");
+            // Fallback for standalone/local execution
+            firebaseConfig = {
+                apiKey: "AIzaSyAjFUX0-ak1yXcsGzoFyCDnEgGuGNlzCgs",
+                authDomain: "asiu2026.firebaseapp.com",
+                projectId: "asiu2026",
+                storageBucket: "asiu2026.firebasestorage.app",
+                messagingSenderId: "624265912622",
+                appId: "1:624265912622:web:c579731de5a189070f1abf"
+            };
+            APP_ID = "1:624265912622:web:c579731de5a189070f1abf";
+        }
 
         // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+        let app, auth, db;
+        try {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+        } catch (e) {
+            console.error("Firebase Init Error:", e);
+        }
 
-        // Path Strategy (Strict Rule)
-        // Using provided appId from global variable
-        const APP_ID = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id'; 
-        
         // Auth & Init
         let currentUser = null;
 
         async function initAuth() {
+            if (!auth) return; // Skip if Firebase failed
             try {
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     const userCredential = await signInWithCustomToken(auth, __initial_auth_token);
@@ -332,7 +356,7 @@
                 initLeaderboard();
             } catch (error) {
                 console.error("Auth Error:", error);
-                alert("連線驗證失敗，請檢查網路或重新整理。");
+                // Don't alert here to avoid spamming user if offline
             }
         }
         
@@ -341,7 +365,7 @@
         // --- Leaderboard Functions ---
 
         function initLeaderboard() {
-            if (!currentUser) return; // Safety check
+            if (!currentUser || !db) return; // Safety check
 
             try {
                 // Rule: No complex queries (orderBy/limit) in onSnapshot if indexes aren't guaranteed.
@@ -422,7 +446,7 @@
             }
 
             if (!currentUser) {
-                alert("連線中，請稍後再試...");
+                alert("無法連接資料庫，可能為離線模式或初始化失敗。");
                 return;
             }
 
