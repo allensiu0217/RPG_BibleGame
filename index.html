@@ -12,7 +12,6 @@
             font-family: 'Noto Sans TC', sans-serif;
             background-color: #0f172a;
             color: white;
-            /* Allow scrolling for layout adaptation */
             overflow-y: auto; 
             overflow-x: hidden;
             touch-action: manipulation;
@@ -88,7 +87,6 @@
             filter: drop-shadow(0 0 15px rgba(59, 130, 246, 0.5));
         }
 
-        /* 經文出處顯示動畫 */
         .fade-in-up {
             animation: fadeInUp 0.5s ease-out forwards;
         }
@@ -97,7 +95,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* 漂浮動畫 (首頁 & 結束畫面通用) */
         .floating-icon {
             position: absolute;
             opacity: 0.2;
@@ -114,10 +111,19 @@
             100% { transform: translateY(-20vh) rotate(360deg); opacity: 0; }
         }
 
-        /* Leaderboard Specific Styles */
-        .leaderboard-row:nth-child(1) .rank-num { color: #fbbf24; text-shadow: 0 0 10px rgba(251, 191, 36, 0.5); font-size: 1.2em; } /* Gold */
-        .leaderboard-row:nth-child(2) .rank-num { color: #9ca3af; text-shadow: 0 0 10px rgba(156, 163, 175, 0.5); font-size: 1.1em; } /* Silver */
-        .leaderboard-row:nth-child(3) .rank-num { color: #b45309; text-shadow: 0 0 10px rgba(180, 83, 9, 0.5); font-size: 1.1em; } /* Bronze */
+        .leaderboard-row:nth-child(1) .rank-num { color: #fbbf24; text-shadow: 0 0 10px rgba(251, 191, 36, 0.5); font-size: 1.2em; }
+        .leaderboard-row:nth-child(2) .rank-num { color: #9ca3af; text-shadow: 0 0 10px rgba(156, 163, 175, 0.5); font-size: 1.1em; }
+        .leaderboard-row:nth-child(3) .rank-num { color: #b45309; text-shadow: 0 0 10px rgba(180, 83, 9, 0.5); font-size: 1.1em; }
+        
+        .status-dot {
+            height: 10px;
+            width: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+        .status-online { background-color: #4ade80; box-shadow: 0 0 5px #4ade80; }
+        .status-offline { background-color: #ef4444; box-shadow: 0 0 5px #ef4444; }
     </style>
 </head>
 <body class="bg-epic flex flex-col lg:flex-row items-center justify-center p-4 gap-6">
@@ -127,7 +133,6 @@
 
         <!-- Start Screen -->
         <div id="start-screen" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black bg-opacity-90 text-center p-4 overflow-hidden">
-            <!-- Floating Background Items -->
             <div class="absolute inset-0 z-0 overflow-hidden">
                 <div class="floating-icon" style="left: 10%; animation-duration: 18s; animation-delay: 0s;">🍞</div>
                 <div class="floating-icon" style="left: 25%; animation-duration: 22s; animation-delay: -5s;">🕯️</div>
@@ -151,7 +156,6 @@
 
         <!-- Game Over Screen -->
         <div id="game-over-screen" class="hidden absolute inset-0 z-50 flex flex-col items-center justify-center bg-black bg-opacity-95 text-center p-4 overflow-hidden">
-            <!-- Dynamic Background Container -->
             <div id="game-over-bg" class="absolute inset-0 z-0 overflow-hidden pointer-events-none"></div>
 
             <div class="relative z-10 w-full max-w-sm">
@@ -168,6 +172,7 @@
                         class="w-full py-2 bg-yellow-600 hover:bg-yellow-500 rounded font-bold text-white transition disabled:opacity-50 disabled:cursor-not-allowed">
                         上傳分數
                     </button>
+                    <p id="submit-msg" class="text-xs mt-2 min-h-[1rem] text-red-400"></p>
                 </div>
 
                 <button onclick="location.reload()" class="px-8 py-3 bg-gradient-to-r from-green-600 to-green-800 rounded-lg text-xl font-bold border border-green-400 shadow-lg hover:scale-105 transition">
@@ -178,8 +183,7 @@
 
         <!-- Main Game UI -->
         <div id="game-ui" class="w-full h-full flex flex-col relative hidden">
-            
-            <!-- Header: Stats -->
+            <!-- Header -->
             <div class="glass-panel p-3 border-b border-gray-600 flex justify-between items-center shadow-lg z-10">
                 <div class="text-yellow-400 font-bold text-xl drop-shadow-md">
                     Score: <span id="score-display">0</span>
@@ -194,37 +198,24 @@
 
             <!-- Battle Area -->
             <div class="flex-grow relative p-4">
-                
-                <!-- Enemy Section (Top Center) -->
                 <div class="flex flex-col items-center mt-8 transition-all relative z-10" id="enemy-container">
-                    <!-- HP Bar -->
                     <div class="w-full max-w-xs bg-gray-800 h-5 rounded-full overflow-hidden border-2 border-gray-600 mb-3 relative shadow-inner">
                         <div id="enemy-hp-bar" class="h-full bg-gradient-to-r from-red-600 to-red-500 transition-all duration-500 shadow-[0_0_10px_rgba(239,68,68,0.8)]" style="width: 100%;"></div>
                     </div>
-                    
-                    <!-- Monster Sprite -->
                     <div class="text-6xl mb-2 glow-red animate-pulse transform hover:scale-110 transition duration-500 cursor-pointer" id="enemy-sprite">👿</div>
-                    
                     <div class="text-2xl font-bold text-red-400 drop-shadow-md" id="enemy-name">懷疑之靈</div>
                 </div>
 
-                <!-- Effect Container (for floating text) -->
                 <div id="effect-container" class="absolute inset-0 pointer-events-none z-50"></div>
 
-                <!-- Player Section (Bottom Left) -->
                 <div class="absolute bottom-2 left-4 z-20 flex flex-col items-center">
-                    <!-- Helper: Holy Spirit Dove -->
                     <div class="text-center relative mb-1">
                         <div class="text-5xl glow-holy animate-pulse" style="animation-duration: 3s;">🕊️</div>
                         <div class="text-xs text-yellow-200 font-bold bg-black bg-opacity-50 px-2 rounded -mt-2 relative z-10 scale-75">聖靈</div>
                     </div>
-
-                    <!-- Player: Equipped with Armor -->
                     <div class="text-center relative group">
-                        <!-- Skill Indicator -->
                         <div id="skill-indicator" class="absolute -top-12 left-1/2 transform -translate-x-1/2 text-sm bg-yellow-500 text-white font-bold px-3 py-1 rounded-full shadow-lg opacity-0 transition border border-yellow-300 whitespace-nowrap z-30">聖靈充滿!</div>
                         <div class="text-6xl glow-blue transition transform group-hover:-translate-y-1" id="player-sprite">🛡️⚔️</div>
-                        <!-- Player HP -->
                         <div class="w-24 bg-gray-800 h-4 rounded-full overflow-hidden border border-gray-500 mt-1 relative shadow-lg mx-auto">
                             <div id="player-hp-bar" class="h-full bg-gradient-to-r from-green-500 to-emerald-400 transition-all duration-300 shadow-[0_0_10px_rgba(74,222,128,0.5)]" style="width: 100%;"></div>
                         </div>
@@ -233,50 +224,43 @@
                 </div>
             </div>
 
-            <!-- Card Selection Area (Bottom) -->
+            <!-- Card Selection -->
             <div id="card-selection-area" class="h-1/3 glass-panel p-4 border-t-2 border-gray-500 rounded-t-3xl shadow-[0_-5px_30px_rgba(0,0,0,0.6)] z-20 flex flex-col">
                 <div class="text-center text-blue-200 mb-2 font-bold animate-bounce text-sm tracking-wider">▼ 請選擇聖靈寶劍的屬性 ▼</div>
-                <div class="flex justify-around items-center h-full gap-3" id="cards-container">
-                    <!-- Cards will be injected here via JS -->
-                </div>
+                <div class="flex justify-around items-center h-full gap-3" id="cards-container"></div>
             </div>
 
-            <!-- Question Modal (Overlay) -->
+            <!-- Question Modal -->
             <div id="question-modal" class="hidden absolute inset-0 z-40 bg-black bg-opacity-95 flex flex-col p-4 animate-fade-in backdrop-blur-sm">
-                <!-- Timer Bar -->
                 <div class="w-full bg-gray-800 h-3 mb-6 rounded-full overflow-hidden border border-gray-600">
                     <div id="timer-bar" class="h-full bg-gradient-to-r from-yellow-400 to-orange-500 w-full shadow-[0_0_10px_rgba(250,204,21,0.5)]"></div>
                 </div>
-
                 <div class="bg-slate-800 rounded-xl p-6 flex-grow flex flex-col shadow-2xl border border-slate-600 relative overflow-hidden">
                     <div class="flex justify-between items-center mb-4">
                         <span id="q-category" class="px-4 py-1.5 rounded-full text-sm font-bold text-white shadow-md">愛心</span>
                         <span id="q-difficulty" class="text-sm text-gray-300 font-mono">難度: 入門</span>
                     </div>
-                    
-                    <h3 id="q-text" class="text-xl font-bold mb-4 leading-relaxed custom-scroll overflow-y-auto max-h-40 text-white drop-shadow-sm">
-                        問題載入中...
-                    </h3>
-
-                    <!-- Reference Display -->
+                    <h3 id="q-text" class="text-xl font-bold mb-4 leading-relaxed custom-scroll overflow-y-auto max-h-40 text-white drop-shadow-sm">問題載入中...</h3>
                     <div id="q-ref-container" class="hidden mb-4 p-2 bg-slate-900 bg-opacity-50 rounded border-l-4 border-yellow-500">
                         <p class="text-yellow-400 text-sm font-mono">📖 <span id="q-ref-text"></span></p>
                     </div>
-
-                    <div class="grid grid-cols-1 gap-3 mt-auto" id="options-container">
-                        <!-- Options injected here -->
-                    </div>
+                    <div class="grid grid-cols-1 gap-3 mt-auto" id="options-container"></div>
                 </div>
             </div>
-
         </div>
     </div>
 
     <!-- Live Leaderboard Section -->
     <div class="w-full max-w-sm h-[600px] max-h-[80vh] bg-gray-900 rounded-3xl shadow-2xl overflow-hidden border border-gray-700 flex flex-col glass-panel shrink-0">
-        <div class="bg-gradient-to-r from-yellow-700 to-yellow-900 p-4 text-center shadow-md">
-            <h2 class="text-2xl font-bold text-yellow-100">🏆 榮耀排行榜</h2>
-            <p class="text-xs text-yellow-200 opacity-80">Live Leaderboard</p>
+        <div class="bg-gradient-to-r from-yellow-700 to-yellow-900 p-4 text-center shadow-md flex justify-between items-center">
+            <div>
+                <h2 class="text-2xl font-bold text-yellow-100">🏆 榮耀排行榜</h2>
+                <p class="text-xs text-yellow-200 opacity-80 text-left">Live Leaderboard</p>
+            </div>
+            <div class="text-xs font-bold px-2 py-1 bg-black bg-opacity-30 rounded flex items-center">
+                <span id="conn-status-dot" class="status-dot status-offline"></span>
+                <span id="conn-status-text">連線中...</span>
+            </div>
         </div>
         <div class="flex-grow overflow-y-auto custom-scroll p-4">
             <table class="w-full text-left border-collapse">
@@ -289,7 +273,7 @@
                 </thead>
                 <tbody id="leaderboard-body" class="text-sm">
                     <tr>
-                        <td colspan="3" class="text-center py-4 text-gray-500">載入中...</td>
+                        <td colspan="3" class="text-center py-4 text-gray-500">初始化資料庫...</td>
                     </tr>
                 </tbody>
             </table>
@@ -298,12 +282,26 @@
 
     <!-- Firebase Logic & Game Script -->
     <script type="module">
-        // Import Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Configuration - Get from Global Scope with Safe Fallback
+        // UI Helpers
+        const setConnStatus = (online, msg) => {
+            const dot = document.getElementById('conn-status-dot');
+            const text = document.getElementById('conn-status-text');
+            if (online) {
+                dot.className = "status-dot status-online";
+                text.innerText = "已連線";
+                text.className = "text-green-300";
+            } else {
+                dot.className = "status-dot status-offline";
+                text.innerText = msg || "離線";
+                text.className = "text-red-300";
+            }
+        };
+
+        // Configuration Fallback Logic
         let firebaseConfig;
         let APP_ID;
 
@@ -312,23 +310,22 @@
                 firebaseConfig = JSON.parse(__firebase_config);
                 APP_ID = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
             } else {
-                throw new Error("Env config missing");
+                // FALLBACK for manual run / download
+                firebaseConfig = {
+                    apiKey: "AIzaSyAjFUX0-ak1yXcsGzoFyCDnEgGuGNlzCgs",
+                    authDomain: "asiu2026.firebaseapp.com",
+                    projectId: "asiu2026",
+                    storageBucket: "asiu2026.firebasestorage.app",
+                    messagingSenderId: "624265912622",
+                    appId: "1:624265912622:web:c579731de5a189070f1abf"
+                };
+                APP_ID = "1:624265912622:web:c579731de5a189070f1abf";
             }
         } catch (e) {
-            console.log("Using local/fallback config");
-            // Fallback for standalone/local execution
-            firebaseConfig = {
-                apiKey: "AIzaSyAjFUX0-ak1yXcsGzoFyCDnEgGuGNlzCgs",
-                authDomain: "asiu2026.firebaseapp.com",
-                projectId: "asiu2026",
-                storageBucket: "asiu2026.firebasestorage.app",
-                messagingSenderId: "624265912622",
-                appId: "1:624265912622:web:c579731de5a189070f1abf"
-            };
-            APP_ID = "1:624265912622:web:c579731de5a189070f1abf";
+            console.warn("Config parsing failed, utilizing default fallback.");
         }
 
-        // Initialize Firebase
+        // Initialize Services
         let app, auth, db;
         try {
             app = initializeApp(firebaseConfig);
@@ -336,40 +333,54 @@
             db = getFirestore(app);
         } catch (e) {
             console.error("Firebase Init Error:", e);
+            setConnStatus(false, "設定錯誤");
         }
 
-        // Auth & Init
         let currentUser = null;
 
+        // --- Robust Auth Logic ---
         async function initAuth() {
-            if (!auth) return; // Skip if Firebase failed
+            if (!auth) return;
+
             try {
+                // Priority 1: Custom Token (Provided by Env)
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    console.log("Attempting Token Login...");
                     const userCredential = await signInWithCustomToken(auth, __initial_auth_token);
                     currentUser = userCredential.user;
-                    console.log("Signed in with custom token:", currentUser.uid);
+                    console.log("Token Login Success:", currentUser.uid);
                 } else {
+                    throw new Error("No token provided, falling back to Anon");
+                }
+            } catch (tokenError) {
+                console.warn("Token Login Failed/Skipped:", tokenError.message);
+                // Priority 2: Anonymous Login (Fallback)
+                try {
+                    console.log("Attempting Anonymous Login...");
                     const userCredential = await signInAnonymously(auth);
                     currentUser = userCredential.user;
-                    console.log("Signed in anonymously:", currentUser.uid);
+                    console.log("Anon Login Success:", currentUser.uid);
+                } catch (anonError) {
+                    console.error("All Auth Methods Failed:", anonError);
+                    setConnStatus(false, "驗證失敗");
+                    document.getElementById('leaderboard-body').innerHTML = '<tr><td colspan="3" class="text-center py-4 text-red-400">無法連線至伺服器</td></tr>';
+                    return; // Stop here
                 }
-                initLeaderboard();
-            } catch (error) {
-                console.error("Auth Error:", error);
-                // Don't alert here to avoid spamming user if offline
             }
+
+            // If we reached here, we are logged in
+            setConnStatus(true);
+            initLeaderboard();
         }
         
         initAuth();
 
-        // --- Leaderboard Functions ---
-
+        // --- Leaderboard Logic ---
         function initLeaderboard() {
-            if (!currentUser || !db) return; // Safety check
+            if (!currentUser || !db) return;
 
             try {
-                // Rule: No complex queries (orderBy/limit) in onSnapshot if indexes aren't guaranteed.
-                // Fetch all, sort in JS.
+                // Rule: Use specific path as per instructions
                 const scoresRef = collection(db, 'artifacts', APP_ID, 'public', 'data', 'scores');
                 
                 onSnapshot(scoresRef, (snapshot) => {
@@ -381,15 +392,18 @@
                         }
                     });
 
-                    // Sort descending by score
+                    // Sort descending & Slice top 10
                     scores.sort((a, b) => b.score - a.score);
-
-                    // Take top 10
                     const top10 = scores.slice(0, 10);
                     
                     renderLeaderboard(top10);
                 }, (error) => {
-                    console.error("Leaderboard Error:", error);
+                    console.error("Leaderboard Read Error:", error);
+                    if (error.code === 'permission-denied') {
+                        setConnStatus(false, "權限不足");
+                    } else {
+                        setConnStatus(false, "連線中斷");
+                    }
                 });
             } catch (e) {
                 console.error("Init LB Error", e);
@@ -425,28 +439,27 @@
 
         function escapeHtml(text) {
             if (!text) return "";
-            return text
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
 
-        // Expose submit function to global scope
         window.submitScore = async function() {
             const nameInput = document.getElementById('player-name-input');
             const submitBtn = document.getElementById('submit-score-btn');
+            const msgEl = document.getElementById('submit-msg');
             const name = nameInput.value.trim();
             const score = state.score;
 
+            msgEl.innerText = "";
+
             if (!name) {
-                alert("請輸入名字！");
+                msgEl.innerText = "請輸入名字！";
                 return;
             }
 
             if (!currentUser) {
-                alert("無法連接資料庫，可能為離線模式或初始化失敗。");
+                msgEl.innerText = "尚未連線，請確認網路狀態。";
+                // Try to reconnect
+                initAuth();
                 return;
             }
 
@@ -458,30 +471,33 @@
                     name: name,
                     score: score,
                     uid: currentUser.uid,
-                    timestamp: serverTimestamp() // Server time
+                    timestamp: serverTimestamp()
                 };
 
-                // Path construction using helper function args structure: collection(db, pathSegments...)
                 await addDoc(collection(db, 'artifacts', APP_ID, 'public', 'data', 'scores'), docData);
 
                 submitBtn.innerText = "上傳成功！";
+                submitBtn.className = "w-full py-2 bg-green-600 rounded font-bold text-white transition cursor-default";
                 nameInput.disabled = true;
-                
-                // Keep button disabled to prevent double submit
+                msgEl.innerText = "";
             } catch (error) {
-                console.error("Error adding score: ", error);
+                console.error("Submit Error: ", error);
                 submitBtn.innerText = "上傳失敗";
                 submitBtn.disabled = false;
-                alert("上傳失敗，請檢查網路連線。");
+                // Detailed error feedback
+                if (error.code === 'permission-denied') {
+                    msgEl.innerText = "權限不足：無法寫入資料庫";
+                } else if (error.code === 'unavailable') {
+                    msgEl.innerText = "連線問題：無法連接 Firestore";
+                } else {
+                    msgEl.innerText = `錯誤：${error.code || error.message}`;
+                }
             }
         };
 
-
-        // --- Existing Game Logic (Ported to Module) ---
-        // We must attach these functions to window so HTML onclick works
-        
+        // --- Game Logic ---
         const fullQuestionBank = [
-            // --- RED: Jesus, Gospels, Salvation (30) ---
+            // Red
             { q: "耶穌在曠野禁食了多少天？", options: ["3天", "7天", "40天", "12天"], a: 2, cat: "red", diff: 1, ref: "馬太福音 4:2" },
             { q: "耶穌行的第一個神蹟是什麼？", options: ["五餅二魚", "水變酒", "平靜風浪", "醫治瞎眼"], a: 1, cat: "red", diff: 1, ref: "約翰福音 2:1-11" },
             { q: "誰在耶穌被賣的那一夜三次不認主？", options: ["彼得", "約翰", "猶大", "多馬"], a: 0, cat: "red", diff: 1, ref: "馬太福音 26:69-75" },
@@ -494,26 +510,7 @@
             { q: "耶穌在十字架上說的最後一句話是？", options: ["成了", "父啊，赦免他們", "我渴了", "父啊！我將我的靈魂交在你手裡"], a: 3, cat: "red", diff: 3, ref: "路加福音 23:46" },
             { q: "哪位門徒被稱為「雷子」？", options: ["雅各與約翰", "彼得與安得烈", "腓力與巴多羅買", "馬太與多馬"], a: 0, cat: "red", diff: 3, ref: "馬可福音 3:17" },
             { q: "耶穌治好了幾個痲瘋病人，只有一個回來感恩？", options: ["5個", "7個", "10個", "12個"], a: 2, cat: "red", diff: 2, ref: "路加福音 17:11-19" },
-            { q: "馬太福音記載，耶穌家譜的開頭是誰？", options: ["亞當", "挪亞", "亞伯拉罕", "大衛"], a: 2, cat: "red", diff: 3, ref: "馬太福音 1:1" },
-            { q: "耶穌說這話是誰說的：「主啊，你洗我的腳嗎？」", options: ["猶大", "彼得", "多馬", "腓力"], a: 1, cat: "red", diff: 1, ref: "約翰福音 13:6" },
-            { q: "按才幹受責任的比喻中，領一千銀子的僕人做了什麼？", options: ["做生意賺了一千", "放銀行生利息", "掘地埋藏", "分給窮人"], a: 2, cat: "red", diff: 2, ref: "馬太福音 25:25" },
-            { q: "耶穌在哪個池子治好了38年的癱子？", options: ["西羅亞池", "畢士大池", "雅各井", "約旦河"], a: 1, cat: "red", diff: 3, ref: "約翰福音 5:2" },
-            { q: "浪子回頭故事中，父親給小兒子穿上什麼？", options: ["新鞋", "袍子", "戒指", "以上皆是"], a: 3, cat: "red", diff: 1, ref: "路加福音 15:22" },
-            { q: "耶穌呼召馬太時，馬太的職業是？", options: ["漁夫", "木匠", "稅吏", "醫生"], a: 2, cat: "red", diff: 1, ref: "馬太福音 9:9" },
-            { q: "誰在夜裡來見耶穌，問重生的事？", options: ["尼哥底母", "該亞法", "皮拉多", "約瑟"], a: 0, cat: "red", diff: 2, ref: "約翰福音 3:1-2" },
-            { q: "耶穌說：讓小孩子到我這裡來，因為在神國的正是...？", options: ["謙卑的人", "這樣的人", "無罪的人", "貧窮的人"], a: 1, cat: "red", diff: 2, ref: "馬可福音 10:14" },
-            { q: "耶穌被聖靈引到曠野受試探時，回答魔鬼的第一句話引用自？", options: ["申命記", "詩篇", "以賽亞書", "出埃及記"], a: 0, cat: "red", diff: 3, ref: "馬太福音 4:4 / 申命記 8:3" },
-            { q: "耶穌平靜風浪時，門徒說了什麼？", options: ["感謝主", "這人到底是誰", "救命啊", "神蹟啊"], a: 1, cat: "red", diff: 2, ref: "馬可福音 4:41" },
-            { q: "誰為了看耶穌爬上了桑樹？", options: ["撒該", "巴底買", "拉撒路", "馬太"], a: 0, cat: "red", diff: 1, ref: "路加福音 19:1-4" },
-            { q: "耶穌說最大的誡命是什麼？", options: ["不可殺人", "愛人如己", "盡心愛神", "不可拜偶像"], a: 2, cat: "red", diff: 2, ref: "馬太福音 22:37" },
-            { q: "拉撒路死後幾天，耶穌使他復活？", options: ["1天", "2天", "3天", "4天"], a: 3, cat: "red", diff: 3, ref: "約翰福音 11:39" },
-            { q: "馬大為耶穌忙碌，而馬利亞選擇了什麼？", options: ["幫忙做飯", "打掃房屋", "坐在腳前聽道", "去買香膏"], a: 2, cat: "red", diff: 1, ref: "路加福音 10:39" },
-            { q: "誰用香膏抹主，並用頭髮擦乾？", options: ["馬利亞", "馬大", "撒羅米", "約亞拿"], a: 0, cat: "red", diff: 2, ref: "約翰福音 12:3" },
-            { q: "耶穌差遣多少門徒，兩個兩個的出去？", options: ["12個", "70個", "120個", "500個"], a: 1, cat: "red", diff: 3, ref: "路加福音 10:1" },
-            { q: "誰被迫替耶穌背十字架？", options: ["巴拉巴", "古利奈人西門", "亞利馬太約瑟", "尼哥底母"], a: 1, cat: "red", diff: 2, ref: "馬太福音 27:32" },
-            { q: "耶穌復活後在提比哩亞海邊為門徒準備了什麼？", options: ["酒和餅", "魚和餅", "羊肉", "無花果"], a: 1, cat: "red", diff: 2, ref: "約翰福音 21:9" },
-
-            // --- BLUE: Wisdom, Prophecy, Revelation (30) ---
+            // Blue
             { q: "聖經中哪一卷書被稱為智慧之書？", options: ["創世記", "箴言", "出埃及記", "利未記"], a: 1, cat: "blue", diff: 1, ref: "箴言 1:1-7" },
             { q: "「耶和華是我的牧者，我必不致缺乏」出自？", options: ["詩篇23篇", "詩篇91篇", "詩篇119篇", "詩篇1篇"], a: 0, cat: "blue", diff: 1, ref: "詩篇 23:1" },
             { q: "啟示錄的作者是誰？", options: ["保羅", "彼得", "約翰", "路加"], a: 2, cat: "blue", diff: 1, ref: "啟示錄 1:1" },
@@ -525,27 +522,7 @@
             { q: "傳道書說：「虛空的虛空，凡事都是...」？", options: ["罪惡", "痛苦", "虛空", "美好"], a: 2, cat: "blue", diff: 2, ref: "傳道書 1:2" },
             { q: "哪位先知被稱為「流淚的先知」？", options: ["以賽亞", "耶利米", "以西結", "何西阿"], a: 1, cat: "blue", diff: 3, ref: "耶利米書 9:1" },
             { q: "以利亞乘什麼升天？", options: ["雲彩", "旋風", "火車火馬", "天使"], a: 1, cat: "blue", diff: 3, ref: "列王紀下 2:11" },
-            { q: "啟示錄中，耶穌被稱為猶大支派的什麼？", options: ["獅子", "羔羊", "老鷹", "葡萄樹"], a: 0, cat: "blue", diff: 3, ref: "啟示錄 5:5" },
-            { q: "詩篇中最長的一篇是？", options: ["117篇", "118篇", "119篇", "150篇"], a: 2, cat: "blue", diff: 3, ref: "詩篇 119" },
-            { q: "所羅門王向神求什麼？", options: ["長壽", "殺敵", "財富", "智慧"], a: 3, cat: "blue", diff: 1, ref: "列王紀上 3:9" },
-            { q: "約伯記中，約伯的朋友有幾位（主要對話者）？", options: ["2位", "3位", "4位", "5位"], a: 1, cat: "blue", diff: 3, ref: "約伯記 2:11" },
-            { q: "雅歌書主要描寫什麼關係？", options: ["良人與佳偶", "父母與子女", "朋友", "君王與臣民"], a: 0, cat: "blue", diff: 2, ref: "雅歌" },
-            { q: "哪卷書提到「枯骨復生」的異象？", options: ["以賽亞書", "耶利米書", "以西結書", "但以理書"], a: 2, cat: "blue", diff: 3, ref: "以西結書 37:1-14" },
-            { q: "「你的話是我腳前的燈，是我路上的光」出自？", options: ["箴言", "詩篇", "約翰福音", "以賽亞書"], a: 1, cat: "blue", diff: 1, ref: "詩篇 119:105" },
-            { q: "誰娶了淫婦歌蔑為妻，象徵神愛背道的以色列？", options: ["阿摩司", "何西阿", "約珥", "彌迦"], a: 1, cat: "blue", diff: 3, ref: "何西阿書 1:2" },
-            { q: "但以理的三個朋友被扔進什麼地方？", options: ["獅子坑", "火窯", "深淵", "監獄"], a: 1, cat: "blue", diff: 2, ref: "但以理書 3:20" },
-            { q: "「日子將到，我必將我的靈澆灌凡有血氣的...」是哪位先知說的？", options: ["約珥", "以賽亞", "耶利米", "瑪拉基"], a: 0, cat: "blue", diff: 3, ref: "約珥書 2:28" },
-            { q: "啟示錄中提到「大淫婦」是指？", options: ["耶洗別", "巴比倫大城", "推羅", "尼尼微"], a: 1, cat: "blue", diff: 3, ref: "啟示錄 17:5" },
-            { q: "誰看見「主坐在高高的寶座上，衣裳垂下，遮滿聖殿」？", options: ["以賽亞", "以西結", "但以理", "摩西"], a: 0, cat: "blue", diff: 3, ref: "以賽亞書 6:1" },
-            { q: "「行公義，好憐憫，存謙卑的心與神同行」出自？", options: ["彌迦書", "阿摩司書", "哈巴谷書", "西番雅書"], a: 0, cat: "blue", diff: 3, ref: "彌迦書 6:8" },
-            { q: "箴言中說，才德的婦人價值遠勝過什麼？", options: ["黃金", "珍珠", "寶石", "白銀"], a: 1, cat: "blue", diff: 2, ref: "箴言 31:10" },
-            { q: "詩篇23篇說：他使我躺臥在...？", options: ["溪水旁", "青草地上", "幽谷中", "盤石上"], a: 1, cat: "blue", diff: 1, ref: "詩篇 23:2" },
-            { q: "哪一卷書只有一章？", options: ["俄巴底亞書", "約拿書", "哈該書", "那鴻書"], a: 0, cat: "blue", diff: 3, ref: "俄巴底亞書" },
-            { q: "誰為耶路撒冷城牆被毀而哭泣禁食？", options: ["以斯拉", "尼希米", "以斯帖", "所羅門"], a: 1, cat: "blue", diff: 2, ref: "尼希米記 1:4" },
-            { q: "啟示錄中，明亮的晨星是指誰？", options: ["路西法", "耶穌", "大衛", "天使長"], a: 1, cat: "blue", diff: 2, ref: "啟示錄 22:16" },
-            { q: "「草必枯乾，花必凋殘，惟有我們神的話必永遠立定」出自？", options: ["以賽亞書", "耶利米書", "詩篇", "彼得前書"], a: 0, cat: "blue", diff: 2, ref: "以賽亞書 40:8" },
-
-            // --- YELLOW: History, Law, Acts, Faith (30) ---
+            // Yellow
             { q: "誰帶領以色列人出埃及？", options: ["亞伯拉罕", "摩西", "約書亞", "大衛"], a: 1, cat: "yellow", diff: 1, ref: "出埃及記 3:10" },
             { q: "人類歷史上第一樁謀殺案的兇手是？", options: ["亞當", "該隱", "亞伯", "拉麥"], a: 1, cat: "yellow", diff: 1, ref: "創世記 4:8" },
             { q: "大衛用什麼打敗了巨人歌利亞？", options: ["劍", "長槍", "機弦甩石", "弓箭"], a: 2, cat: "yellow", diff: 1, ref: "撒母耳記上 17:49" },
@@ -557,28 +534,9 @@
             { q: "賣長子名分換紅豆湯的是誰？", options: ["雅各", "以掃", "約瑟", "班傑明"], a: 1, cat: "yellow", diff: 2, ref: "創世記 25:30-34" },
             { q: "第一位殉道的基督徒是誰？", options: ["司提反", "雅各", "彼得", "保羅"], a: 0, cat: "yellow", diff: 2, ref: "使徒行傳 7:59" },
             { q: "聖靈的果子共有幾樣？", options: ["7樣", "9樣", "12樣", "3樣"], a: 1, cat: "yellow", diff: 2, ref: "加拉太書 5:22" },
-            { q: "十誡寫在什麼上面？", options: ["羊皮卷", "石版", "金片", "木頭"], a: 1, cat: "yellow", diff: 1, ref: "出埃及記 31:18" },
-            { q: "哪位士師力大無窮，卻被頭髮出賣？", options: ["基甸", "耶弗他", "參孫", "底波拉"], a: 2, cat: "yellow", diff: 1, ref: "士師記 16:17" },
-            { q: "誰是外邦人的使徒？", options: ["彼得", "保羅", "約翰", "巴拿巴"], a: 1, cat: "yellow", diff: 2, ref: "羅馬書 11:13" },
-            { q: "舊約中誰活得最久？", options: ["亞當", "挪亞", "瑪土撒拉", "塞特"], a: 2, cat: "yellow", diff: 3, ref: "創世記 5:27" },
-            { q: "誰因偷竊當滅之物導致艾城戰役失敗？", options: ["亞干", "可拉", "巴蘭", "基哈西"], a: 0, cat: "yellow", diff: 3, ref: "約書亞記 7:1" },
-            { q: "律法書（摩西五經）不包括哪一卷？", options: ["創世記", "利未記", "約書亞記", "申命記"], a: 2, cat: "yellow", diff: 2, ref: "舊約分類" },
-            { q: "誰冒死進去見王，說：「我若死就死吧」？", options: ["路得", "拿俄米", "以斯帖", "喇合"], a: 2, cat: "yellow", diff: 2, ref: "以斯帖記 4:16" },
-            { q: "以色列人過約旦河時，誰要先下水？", options: ["抬約櫃的祭司", "猶大支派", "約書亞", "軍隊"], a: 0, cat: "yellow", diff: 3, ref: "約書亞記 3:13" },
-            { q: "基甸用多少人打敗了米甸大軍？", options: ["30000人", "10000人", "300人", "12人"], a: 2, cat: "yellow", diff: 2, ref: "士師記 7:7" },
-            { q: "誰在殿裡被神呼喚三次，回答「請說，僕人敬聽」？", options: ["大衛", "撒母耳", "以利", "摩西"], a: 1, cat: "yellow", diff: 2, ref: "撒母耳記上 3:10" },
-            { q: "哪位使徒在馬耳他島被毒蛇咬卻沒事？", options: ["彼得", "保羅", "約翰", "腓力"], a: 1, cat: "yellow", diff: 3, ref: "使徒行傳 28:3-5" },
-            { q: "巴別塔事件變亂了什麼？", options: ["種族", "口音", "文字", "以上皆是"], a: 1, cat: "yellow", diff: 1, ref: "創世記 11:9" },
-            { q: "摩西擊打盤石出水，得罪神的地方是？", options: ["沒有吩咐盤石", "擊打了兩下", "不信神", "發怒"], a: 1, cat: "yellow", diff: 3, ref: "民數記 20:11" },
-            { q: "誰接續以利亞的職分？", options: ["以利沙", "基哈西", "耶戶", "阿摩司"], a: 0, cat: "yellow", diff: 2, ref: "列王紀下 2:15" },
-            { q: "亞伯拉罕獻以撒的地方是？", options: ["摩利亞山", "西奈山", "亞拉臘山", "尼波山"], a: 0, cat: "yellow", diff: 3, ref: "創世記 22:2" },
-            { q: "誰把約瑟賣到埃及？", options: ["以實瑪利人", "他的哥哥們", "法老", "波提乏"], a: 1, cat: "yellow", diff: 1, ref: "創世記 37:28" },
-            { q: "乃縵元帥在哪條河沐浴七次得醫治？", options: ["幼發拉底河", "底格里斯河", "約旦河", "尼羅河"], a: 2, cat: "yellow", diff: 2, ref: "列王紀下 5:14" },
-            { q: "五旬節講道使三千人悔改的是誰？", options: ["彼得", "保羅", "司提反", "雅各"], a: 0, cat: "yellow", diff: 2, ref: "使徒行傳 2:41" },
-            { q: "誰是路得的第二任丈夫？", options: ["波阿斯", "瑪倫", "基連", "以利米勒"], a: 0, cat: "yellow", diff: 2, ref: "路得記 4:13" }
+            { q: "十誡寫在什麼上面？", options: ["羊皮卷", "石版", "金片", "木頭"], a: 1, cat: "yellow", diff: 1, ref: "出埃及記 31:18" }
         ];
 
-        // --- Game State ---
         let state = {
             playerHP: 100,
             maxPlayerHP: 100,
@@ -603,7 +561,6 @@
             { name: "古龍撒旦", emoji: "🐲", hp: 200 }
         ];
 
-        // --- DOM Elements ---
         const ui = {
             startScreen: document.getElementById('start-screen'),
             gameUi: document.getElementById('game-ui'),
@@ -636,8 +593,6 @@
 
         let timerInterval;
 
-        // --- Global Functions (Attached to Window) ---
-
         window.startGame = function() {
             ui.startScreen.classList.add('hidden');
             ui.gameUi.classList.remove('hidden');
@@ -651,36 +606,29 @@
             const q = state.activeQuestion;
             const isCorrect = selectedIndex === q.a;
             
-            // Disable all buttons
             const buttons = ui.optionsContainer.children;
             for(let b of buttons) {
                 b.disabled = true;
                 b.classList.add('opacity-50', 'cursor-not-allowed');
             }
 
-            // Highlight answers
             if (selectedIndex !== -1 && btnElement) {
                 btnElement.classList.remove('opacity-50');
                 btnElement.classList.remove('bg-slate-700', 'border-slate-500');
                 btnElement.classList.add(isCorrect ? 'bg-green-600' : 'bg-red-600', isCorrect ? 'border-green-400' : 'border-red-400');
             }
-            // Always show correct answer
             buttons[q.a].classList.remove('opacity-50');
             buttons[q.a].classList.add('ring-4', 'ring-green-400', 'bg-green-600', 'border-green-400');
 
-            // Show Reference with animation
             ui.qRefContainer.classList.remove('hidden');
             ui.qRefContainer.classList.add('fade-in-up');
 
-            // Wait longer to read the reference
             setTimeout(() => {
                 ui.questionModal.classList.add('hidden');
-                ui.qRefContainer.classList.remove('fade-in-up'); // reset animation class
+                ui.qRefContainer.classList.remove('fade-in-up');
                 resolveTurn(isCorrect, q);
-            }, 2500); // 2.5 seconds to read
+            }, 2500);
         };
-
-        // --- Internal Game Helpers ---
 
         function resetGame() {
             state.playerHP = 100;
@@ -819,7 +767,6 @@
                 const btn = document.createElement('button');
                 btn.className = "w-full text-left p-4 rounded-xl bg-slate-700 hover:bg-slate-600 border border-slate-500 hover:border-blue-400 transition text-lg font-medium text-gray-100 shadow-md";
                 btn.innerText = opt;
-                // Important: Use window.checkAnswer
                 btn.onclick = () => window.checkAnswer(index, btn);
                 ui.optionsContainer.appendChild(btn);
             });
@@ -917,11 +864,12 @@
             ui.gameUi.classList.add('hidden');
             ui.gameOverScreen.classList.remove('hidden');
             
-            // Prepare score submission form
             ui.submitScoreBtn.innerText = "上傳分數";
+            ui.submitScoreBtn.className = "w-full py-2 bg-yellow-600 hover:bg-yellow-500 rounded font-bold text-white transition";
             ui.submitScoreBtn.disabled = false;
             ui.playerNameInput.value = "";
             ui.playerNameInput.disabled = false;
+            document.getElementById('submit-msg').innerText = "";
 
             ui.gameOverBg.innerHTML = '';
             const icons = victory ? ['🎉', '👑', '✨', '🏆', '🌟', '🛡️'] : ['💤', '🍞', '🕯️', '🕊️', '🌿', '📖'];
