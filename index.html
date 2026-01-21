@@ -300,18 +300,11 @@
     <script type="module">
         // Import Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyAjFUX0-ak1yXcsGzoFyCDnEgGuGNlzCgs",
-            authDomain: "asiu2026.firebaseapp.com",
-            projectId: "asiu2026",
-            storageBucket: "asiu2026.firebasestorage.app",
-            messagingSenderId: "624265912622",
-            appId: "1:624265912622:web:c579731de5a189070f1abf"
-        };
+        // Configuration - Get from Global Scope
+        const firebaseConfig = JSON.parse(__firebase_config);
 
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
@@ -319,22 +312,31 @@
         const db = getFirestore(app);
 
         // Path Strategy (Strict Rule)
-        // Using provided appId or safe fallback
-        const APP_ID = "1:624265912622:web:c579731de5a189070f1abf"; 
-        const SCORES_COLLECTION_PATH = `artifacts/${APP_ID}/public/data/scores`;
-
+        // Using provided appId from global variable
+        const APP_ID = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id'; 
+        
         // Auth & Init
         let currentUser = null;
-        signInAnonymously(auth)
-            .then((userCredential) => {
-                currentUser = userCredential.user;
-                console.log("Signed in anonymously:", currentUser.uid);
-                // Start listening to leaderboard after auth
+
+        async function initAuth() {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    const userCredential = await signInWithCustomToken(auth, __initial_auth_token);
+                    currentUser = userCredential.user;
+                    console.log("Signed in with custom token:", currentUser.uid);
+                } else {
+                    const userCredential = await signInAnonymously(auth);
+                    currentUser = userCredential.user;
+                    console.log("Signed in anonymously:", currentUser.uid);
+                }
                 initLeaderboard();
-            })
-            .catch((error) => {
+            } catch (error) {
                 console.error("Auth Error:", error);
-            });
+                alert("連線驗證失敗，請檢查網路或重新整理。");
+            }
+        }
+        
+        initAuth();
 
         // --- Leaderboard Functions ---
 
