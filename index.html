@@ -290,14 +290,26 @@
         const setConnStatus = (online, msg) => {
             const dot = document.getElementById('conn-status-dot');
             const text = document.getElementById('conn-status-text');
+            const submitBtn = document.getElementById('submit-score-btn');
+            
             if (online) {
-                dot.className = "status-dot status-online";
-                text.innerText = "已連線";
-                text.className = "text-green-300";
+                if(dot) dot.className = "status-dot status-online";
+                if(text) {
+                    text.innerText = "已連線";
+                    text.className = "text-green-300";
+                }
+                // Automatically enable submit button if it was in waiting state
+                if(submitBtn && submitBtn.disabled && submitBtn.innerText === "連線中...") {
+                     submitBtn.disabled = false;
+                     submitBtn.innerText = "上傳分數";
+                     submitBtn.className = "w-full py-2 bg-yellow-600 hover:bg-yellow-500 rounded font-bold text-white transition";
+                }
             } else {
-                dot.className = "status-dot status-offline";
-                text.innerText = msg || "離線";
-                text.className = "text-red-300";
+                if(dot) dot.className = "status-dot status-offline";
+                if(text) {
+                    text.innerText = msg || "離線";
+                    text.className = "text-red-300";
+                }
             }
         };
 
@@ -317,9 +329,9 @@
                     projectId: "asiu2026",
                     storageBucket: "asiu2026.firebasestorage.app",
                     messagingSenderId: "624265912622",
-                    appId: "1:624265912622:web:c579731de5a189070f1abf"
+                    appId: "1:624265912622:web:c71d00cd81e724240f1abf"
                 };
-                APP_ID = "1:624265912622:web:c579731de5a189070f1abf";
+                APP_ID = "1:624265912622:web:c71d00cd81e724240f1abf";
             }
         } catch (e) {
             console.warn("Config parsing failed, utilizing default fallback.");
@@ -457,10 +469,13 @@
             }
 
             if (!currentUser) {
-                msgEl.innerText = "尚未連線，請確認網路狀態。";
+                msgEl.innerText = "尚未連線，正在嘗試重連...";
                 // Try to reconnect
-                initAuth();
-                return;
+                await initAuth();
+                if(!currentUser) {
+                     msgEl.innerText = "連線失敗，請檢查網路。";
+                     return;
+                }
             }
 
             try {
@@ -767,6 +782,7 @@
                 const btn = document.createElement('button');
                 btn.className = "w-full text-left p-4 rounded-xl bg-slate-700 hover:bg-slate-600 border border-slate-500 hover:border-blue-400 transition text-lg font-medium text-gray-100 shadow-md";
                 btn.innerText = opt;
+                // Important: Use window.checkAnswer
                 btn.onclick = () => window.checkAnswer(index, btn);
                 ui.optionsContainer.appendChild(btn);
             });
@@ -864,12 +880,21 @@
             ui.gameUi.classList.add('hidden');
             ui.gameOverScreen.classList.remove('hidden');
             
-            ui.submitScoreBtn.innerText = "上傳分數";
-            ui.submitScoreBtn.className = "w-full py-2 bg-yellow-600 hover:bg-yellow-500 rounded font-bold text-white transition";
-            ui.submitScoreBtn.disabled = false;
+            const submitBtn = ui.submitScoreBtn;
             ui.playerNameInput.value = "";
             ui.playerNameInput.disabled = false;
             document.getElementById('submit-msg').innerText = "";
+
+            if (!currentUser) {
+                 submitBtn.innerText = "連線中...";
+                 submitBtn.className = "w-full py-2 bg-gray-600 rounded font-bold text-gray-300 cursor-not-allowed";
+                 submitBtn.disabled = true;
+                 initAuth(); 
+            } else {
+                 submitBtn.innerText = "上傳分數";
+                 submitBtn.className = "w-full py-2 bg-yellow-600 hover:bg-yellow-500 rounded font-bold text-white transition";
+                 submitBtn.disabled = false;
+            }
 
             ui.gameOverBg.innerHTML = '';
             const icons = victory ? ['🎉', '👑', '✨', '🏆', '🌟', '🛡️'] : ['💤', '🍞', '🕯️', '🕊️', '🌿', '📖'];
