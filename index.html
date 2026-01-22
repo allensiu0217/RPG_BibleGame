@@ -48,7 +48,7 @@
             text-shadow: 0 0 10px rgba(0,0,0,0.8);
             animation: floatUp 1.2s forwards;
             pointer-events: none;
-            z-index: 50;
+            z-index: 60; /* Higher than projectiles */
         }
         
         @keyframes floatUp {
@@ -124,6 +124,15 @@
         }
         .status-online { background-color: #4ade80; box-shadow: 0 0 5px #4ade80; }
         .status-offline { background-color: #ef4444; box-shadow: 0 0 5px #ef4444; }
+
+        /* Projectile Styles */
+        .projectile {
+            position: fixed; /* Fixed to move relative to viewport */
+            font-size: 3rem;
+            z-index: 55;
+            pointer-events: none;
+            filter: drop-shadow(0 0 10px rgba(255,255,255,0.8));
+        }
     </style>
 </head>
 <body class="bg-epic flex flex-col lg:flex-row items-center justify-center p-4 gap-6">
@@ -147,7 +156,7 @@
             <div class="relative z-10">
                 <div class="mb-6 text-7xl glow-holy">🛡️⚔️</div>
                 <h1 class="text-5xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-yellow-100 to-yellow-300">聖經問答 RPG<br><span class="text-2xl text-white font-normal tracking-widest">真理之戰</span></h1>
-                <p class="text-blue-200 mb-8 max-w-md text-lg">90道聖經難題，絕不重複！<br>穿戴全副屬靈軍裝，隨聖靈引導，<br>用真理擊退黑暗權勢！</p>
+                <p class="text-blue-200 mb-8 max-w-md text-lg">100道聖經難題，絕不重複！<br>穿戴全副屬靈軍裝，隨聖靈引導，<br>用真理擊退黑暗權勢！</p>
                 <button onclick="window.startGame()" class="px-10 py-4 bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-500 hover:to-blue-700 rounded-xl text-xl font-bold transition transform hover:scale-105 shadow-lg border border-blue-400">
                     開始屬靈爭戰
                 </button>
@@ -208,6 +217,7 @@
 
                 <div id="effect-container" class="absolute inset-0 pointer-events-none z-50"></div>
 
+                <!-- Player Section (Bottom Left) -->
                 <div class="absolute bottom-2 left-4 z-20 flex flex-col items-center">
                     <div class="text-center relative mb-1">
                         <div class="text-5xl glow-holy animate-pulse" style="animation-duration: 3s;">🕊️</div>
@@ -226,7 +236,7 @@
 
             <!-- Card Selection -->
             <div id="card-selection-area" class="h-1/3 glass-panel p-4 border-t-2 border-gray-500 rounded-t-3xl shadow-[0_-5px_30px_rgba(0,0,0,0.6)] z-20 flex flex-col">
-                <div class="text-center text-blue-200 mb-2 font-bold animate-bounce text-sm tracking-wider">▼ 請選擇聖靈寶劍的屬性 ▼</div>
+                <div class="text-center text-blue-200 mb-2 font-bold animate-bounce text-sm tracking-wider">▼ 請選擇不同強度的屬性攻擊 ▼</div>
                 <div class="flex justify-around items-center h-full gap-3" id="cards-container"></div>
             </div>
 
@@ -324,14 +334,14 @@
             } else {
                 // FALLBACK for manual run / download
                 firebaseConfig = {
-                    apiKey: "AIzaSyAjFUX0-ak1yXcsGzoFyCDnEgGuGNlzCgs",
-                    authDomain: "asiu2026.firebaseapp.com",
-                    projectId: "asiu2026",
-                    storageBucket: "asiu2026.firebasestorage.app",
-                    messagingSenderId: "624265912622",
-                    appId: "1:624265912622:web:c71d00cd81e724240f1abf"
+                    apiKey: "AIzaSyC9fojZpT0TiSWSAtj525BLNwHQtIEePc0",
+                    authDomain: "arpg-202601.firebaseapp.com",
+                    projectId: "arpg-202601",
+                    storageBucket: "arpg-202601.firebasestorage.app",
+                    messagingSenderId: "64696139209",
+                    appId: "1:64696139209:web:04ff78acbfec0da4d17c18"
                 };
-                APP_ID = "1:624265912622:web:c71d00cd81e724240f1abf";
+                APP_ID = "1:64696139209:web:04ff78acbfec0da4d17c18";
             }
         } catch (e) {
             console.warn("Config parsing failed, utilizing default fallback.");
@@ -512,7 +522,7 @@
 
         // --- Game Logic ---
         const fullQuestionBank = [
-            // Red
+            // Red (Jesus, Gospels, Love) ~30
             { q: "耶穌在曠野禁食了多少天？", options: ["3天", "7天", "40天", "12天"], a: 2, cat: "red", diff: 1, ref: "馬太福音 4:2" },
             { q: "耶穌行的第一個神蹟是什麼？", options: ["五餅二魚", "水變酒", "平靜風浪", "醫治瞎眼"], a: 1, cat: "red", diff: 1, ref: "約翰福音 2:1-11" },
             { q: "誰在耶穌被賣的那一夜三次不認主？", options: ["彼得", "約翰", "猶大", "多馬"], a: 0, cat: "red", diff: 1, ref: "馬太福音 26:69-75" },
@@ -525,7 +535,26 @@
             { q: "耶穌在十字架上說的最後一句話是？", options: ["成了", "父啊，赦免他們", "我渴了", "父啊！我將我的靈魂交在你手裡"], a: 3, cat: "red", diff: 3, ref: "路加福音 23:46" },
             { q: "哪位門徒被稱為「雷子」？", options: ["雅各與約翰", "彼得與安得烈", "腓力與巴多羅買", "馬太與多馬"], a: 0, cat: "red", diff: 3, ref: "馬可福音 3:17" },
             { q: "耶穌治好了幾個痲瘋病人，只有一個回來感恩？", options: ["5個", "7個", "10個", "12個"], a: 2, cat: "red", diff: 2, ref: "路加福音 17:11-19" },
-            // Blue
+            { q: "馬太福音記載，耶穌家譜的開頭是誰？", options: ["亞當", "挪亞", "亞伯拉罕", "大衛"], a: 2, cat: "red", diff: 3, ref: "馬太福音 1:1" },
+            { q: "耶穌說這話是誰說的：「主啊，你洗我的腳嗎？」", options: ["猶大", "彼得", "多馬", "腓力"], a: 1, cat: "red", diff: 1, ref: "約翰福音 13:6" },
+            { q: "按才幹受責任的比喻中，領一千銀子的僕人做了什麼？", options: ["做生意賺了一千", "放銀行生利息", "掘地埋藏", "分給窮人"], a: 2, cat: "red", diff: 2, ref: "馬太福音 25:25" },
+            { q: "耶穌在哪個池子治好了38年的癱子？", options: ["西羅亞池", "畢士大池", "雅各井", "約旦河"], a: 1, cat: "red", diff: 3, ref: "約翰福音 5:2" },
+            { q: "浪子回頭故事中，父親給小兒子穿上什麼？", options: ["新鞋", "袍子", "戒指", "以上皆是"], a: 3, cat: "red", diff: 1, ref: "路加福音 15:22" },
+            { q: "耶穌呼召馬太時，馬太的職業是？", options: ["漁夫", "木匠", "稅吏", "醫生"], a: 2, cat: "red", diff: 1, ref: "馬太福音 9:9" },
+            { q: "誰在夜裡來見耶穌，問重生的事？", options: ["尼哥底母", "該亞法", "皮拉多", "約瑟"], a: 0, cat: "red", diff: 2, ref: "約翰福音 3:1-2" },
+            { q: "耶穌說：讓小孩子到我這裡來，因為在神國的正是...？", options: ["謙卑的人", "這樣的人", "無罪的人", "貧窮的人"], a: 1, cat: "red", diff: 2, ref: "馬可福音 10:14" },
+            { q: "耶穌被聖靈引到曠野受試探時，回答魔鬼的第一句話引用自？", options: ["申命記", "詩篇", "以賽亞書", "出埃及記"], a: 0, cat: "red", diff: 3, ref: "馬太福音 4:4 / 申命記 8:3" },
+            { q: "耶穌平靜風浪時，門徒說了什麼？", options: ["感謝主", "這人到底是誰", "救命啊", "神蹟啊"], a: 1, cat: "red", diff: 2, ref: "馬可福音 4:41" },
+            { q: "誰為了看耶穌爬上了桑樹？", options: ["撒該", "巴底買", "拉撒路", "馬太"], a: 0, cat: "red", diff: 1, ref: "路加福音 19:1-4" },
+            { q: "耶穌說最大的誡命是什麼？", options: ["不可殺人", "愛人如己", "盡心愛神", "不可拜偶像"], a: 2, cat: "red", diff: 2, ref: "馬太福音 22:37" },
+            { q: "拉撒路死後幾天，耶穌使他復活？", options: ["1天", "2天", "3天", "4天"], a: 3, cat: "red", diff: 3, ref: "約翰福音 11:39" },
+            { q: "馬大為耶穌忙碌，而馬利亞選擇了什麼？", options: ["幫忙做飯", "打掃房屋", "坐在腳前聽道", "去買香膏"], a: 2, cat: "red", diff: 1, ref: "路加福音 10:39" },
+            { q: "誰用香膏抹主，並用頭髮擦乾？", options: ["馬利亞", "馬大", "撒羅米", "約亞拿"], a: 0, cat: "red", diff: 2, ref: "約翰福音 12:3" },
+            { q: "耶穌差遣多少門徒，兩個兩個的出去？", options: ["12個", "70個", "120個", "500個"], a: 1, cat: "red", diff: 3, ref: "路加福音 10:1" },
+            { q: "誰被迫替耶穌背十字架？", options: ["巴拉巴", "古利奈人西門", "亞利馬太約瑟", "尼哥底母"], a: 1, cat: "red", diff: 2, ref: "馬太福音 27:32" },
+            { q: "耶穌復活後在提比哩亞海邊為門徒準備了什麼？", options: ["酒和餅", "魚和餅", "羊肉", "無花果"], a: 1, cat: "red", diff: 2, ref: "約翰福音 21:9" },
+
+            // Blue (Prophecy, Wisdom, Revelation) ~30
             { q: "聖經中哪一卷書被稱為智慧之書？", options: ["創世記", "箴言", "出埃及記", "利未記"], a: 1, cat: "blue", diff: 1, ref: "箴言 1:1-7" },
             { q: "「耶和華是我的牧者，我必不致缺乏」出自？", options: ["詩篇23篇", "詩篇91篇", "詩篇119篇", "詩篇1篇"], a: 0, cat: "blue", diff: 1, ref: "詩篇 23:1" },
             { q: "啟示錄的作者是誰？", options: ["保羅", "彼得", "約翰", "路加"], a: 2, cat: "blue", diff: 1, ref: "啟示錄 1:1" },
@@ -537,7 +566,27 @@
             { q: "傳道書說：「虛空的虛空，凡事都是...」？", options: ["罪惡", "痛苦", "虛空", "美好"], a: 2, cat: "blue", diff: 2, ref: "傳道書 1:2" },
             { q: "哪位先知被稱為「流淚的先知」？", options: ["以賽亞", "耶利米", "以西結", "何西阿"], a: 1, cat: "blue", diff: 3, ref: "耶利米書 9:1" },
             { q: "以利亞乘什麼升天？", options: ["雲彩", "旋風", "火車火馬", "天使"], a: 1, cat: "blue", diff: 3, ref: "列王紀下 2:11" },
-            // Yellow
+            { q: "啟示錄中，耶穌被稱為猶大支派的什麼？", options: ["獅子", "羔羊", "老鷹", "葡萄樹"], a: 0, cat: "blue", diff: 3, ref: "啟示錄 5:5" },
+            { q: "詩篇中最長的一篇是？", options: ["117篇", "118篇", "119篇", "150篇"], a: 2, cat: "blue", diff: 3, ref: "詩篇 119" },
+            { q: "所羅門王向神求什麼？", options: ["長壽", "殺敵", "財富", "智慧"], a: 3, cat: "blue", diff: 1, ref: "列王紀上 3:9" },
+            { q: "約伯記中，約伯的朋友有幾位（主要對話者）？", options: ["2位", "3位", "4位", "5位"], a: 1, cat: "blue", diff: 3, ref: "約伯記 2:11" },
+            { q: "雅歌書主要描寫什麼關係？", options: ["良人與佳偶", "父母與子女", "朋友", "君王與臣民"], a: 0, cat: "blue", diff: 2, ref: "雅歌" },
+            { q: "哪卷書提到「枯骨復生」的異象？", options: ["以賽亞書", "耶利米書", "以西結書", "但以理書"], a: 2, cat: "blue", diff: 3, ref: "以西結書 37:1-14" },
+            { q: "「你的話是我腳前的燈，是我路上的光」出自？", options: ["箴言", "詩篇", "約翰福音", "以賽亞書"], a: 1, cat: "blue", diff: 1, ref: "詩篇 119:105" },
+            { q: "誰娶了淫婦歌蔑為妻，象徵神愛背道的以色列？", options: ["阿摩司", "何西阿", "約珥", "彌迦"], a: 1, cat: "blue", diff: 3, ref: "何西阿書 1:2" },
+            { q: "但以理的三個朋友被扔進什麼地方？", options: ["獅子坑", "火窯", "深淵", "監獄"], a: 1, cat: "blue", diff: 2, ref: "但以理書 3:20" },
+            { q: "「日子將到，我必將我的靈澆灌凡有血氣的...」是哪位先知說的？", options: ["約珥", "以賽亞", "耶利米", "瑪拉基"], a: 0, cat: "blue", diff: 3, ref: "約珥書 2:28" },
+            { q: "啟示錄中提到「大淫婦」是指？", options: ["耶洗別", "巴比倫大城", "推羅", "尼尼微"], a: 1, cat: "blue", diff: 3, ref: "啟示錄 17:5" },
+            { q: "誰看見「主坐在高高的寶座上，衣裳垂下，遮滿聖殿」？", options: ["以賽亞", "以西結", "但以理", "摩西"], a: 0, cat: "blue", diff: 3, ref: "以賽亞書 6:1" },
+            { q: "「行公義，好憐憫，存謙卑的心與神同行」出自？", options: ["彌迦書", "阿摩司書", "哈巴谷書", "西番雅書"], a: 0, cat: "blue", diff: 3, ref: "彌迦書 6:8" },
+            { q: "箴言中說，才德的婦人價值遠勝過什麼？", options: ["黃金", "珍珠", "寶石", "白銀"], a: 1, cat: "blue", diff: 2, ref: "箴言 31:10" },
+            { q: "詩篇23篇說：他使我躺臥在...？", options: ["溪水旁", "青草地上", "幽谷中", "盤石上"], a: 1, cat: "blue", diff: 1, ref: "詩篇 23:2" },
+            { q: "哪一卷書只有一章？", options: ["俄巴底亞書", "約拿書", "哈該書", "那鴻書"], a: 0, cat: "blue", diff: 3, ref: "俄巴底亞書" },
+            { q: "誰為耶路撒冷城牆被毀而哭泣禁食？", options: ["以斯拉", "尼希米", "以斯帖", "所羅門"], a: 1, cat: "blue", diff: 2, ref: "尼希米記 1:4" },
+            { q: "啟示錄中，明亮的晨星是指誰？", options: ["路西法", "耶穌", "大衛", "天使長"], a: 1, cat: "blue", diff: 2, ref: "啟示錄 22:16" },
+            { q: "「草必枯乾，花必凋殘，惟有我們神的話必永遠立定」出自？", options: ["以賽亞書", "耶利米書", "詩篇", "彼得前書"], a: 0, cat: "blue", diff: 2, ref: "以賽亞書 40:8" },
+
+            // Yellow (History, Law, Acts) ~30
             { q: "誰帶領以色列人出埃及？", options: ["亞伯拉罕", "摩西", "約書亞", "大衛"], a: 1, cat: "yellow", diff: 1, ref: "出埃及記 3:10" },
             { q: "人類歷史上第一樁謀殺案的兇手是？", options: ["亞當", "該隱", "亞伯", "拉麥"], a: 1, cat: "yellow", diff: 1, ref: "創世記 4:8" },
             { q: "大衛用什麼打敗了巨人歌利亞？", options: ["劍", "長槍", "機弦甩石", "弓箭"], a: 2, cat: "yellow", diff: 1, ref: "撒母耳記上 17:49" },
@@ -549,7 +598,37 @@
             { q: "賣長子名分換紅豆湯的是誰？", options: ["雅各", "以掃", "約瑟", "班傑明"], a: 1, cat: "yellow", diff: 2, ref: "創世記 25:30-34" },
             { q: "第一位殉道的基督徒是誰？", options: ["司提反", "雅各", "彼得", "保羅"], a: 0, cat: "yellow", diff: 2, ref: "使徒行傳 7:59" },
             { q: "聖靈的果子共有幾樣？", options: ["7樣", "9樣", "12樣", "3樣"], a: 1, cat: "yellow", diff: 2, ref: "加拉太書 5:22" },
-            { q: "十誡寫在什麼上面？", options: ["羊皮卷", "石版", "金片", "木頭"], a: 1, cat: "yellow", diff: 1, ref: "出埃及記 31:18" }
+            { q: "十誡寫在什麼上面？", options: ["羊皮卷", "石版", "金片", "木頭"], a: 1, cat: "yellow", diff: 1, ref: "出埃及記 31:18" },
+            { q: "哪位士師力大無窮，卻被頭髮出賣？", options: ["基甸", "耶弗他", "參孫", "底波拉"], a: 2, cat: "yellow", diff: 1, ref: "士師記 16:17" },
+            { q: "誰是外邦人的使徒？", options: ["彼得", "保羅", "約翰", "巴拿巴"], a: 1, cat: "yellow", diff: 2, ref: "羅馬書 11:13" },
+            { q: "舊約中誰活得最久？", options: ["亞當", "挪亞", "瑪土撒拉", "塞特"], a: 2, cat: "yellow", diff: 3, ref: "創世記 5:27" },
+            { q: "誰因偷竊當滅之物導致艾城戰役失敗？", options: ["亞干", "可拉", "巴蘭", "基哈西"], a: 0, cat: "yellow", diff: 3, ref: "約書亞記 7:1" },
+            { q: "律法書（摩西五經）不包括哪一卷？", options: ["創世記", "利未記", "約書亞記", "申命記"], a: 2, cat: "yellow", diff: 2, ref: "舊約分類" },
+            { q: "誰冒死進去見王，說：「我若死就死吧」？", options: ["路得", "拿俄米", "以斯帖", "喇合"], a: 2, cat: "yellow", diff: 2, ref: "以斯帖記 4:16" },
+            { q: "以色列人過約旦河時，誰要先下水？", options: ["抬約櫃的祭司", "猶大支派", "約書亞", "軍隊"], a: 0, cat: "yellow", diff: 3, ref: "約書亞記 3:13" },
+            { q: "基甸用多少人打敗了米甸大軍？", options: ["30000人", "10000人", "300人", "12人"], a: 2, cat: "yellow", diff: 2, ref: "士師記 7:7" },
+            { q: "誰在殿裡被神呼喚三次，回答「請說，僕人敬聽」？", options: ["大衛", "撒母耳", "以利", "摩西"], a: 1, cat: "yellow", diff: 2, ref: "撒母耳記上 3:10" },
+            { q: "哪位使徒在馬耳他島被毒蛇咬卻沒事？", options: ["彼得", "保羅", "約翰", "腓力"], a: 1, cat: "yellow", diff: 3, ref: "使徒行傳 28:3-5" },
+            { q: "巴別塔事件變亂了什麼？", options: ["種族", "口音", "文字", "以上皆是"], a: 1, cat: "yellow", diff: 1, ref: "創世記 11:9" },
+            { q: "摩西擊打盤石出水，得罪神的地方是？", options: ["沒有吩咐盤石", "擊打了兩下", "不信神", "發怒"], a: 1, cat: "yellow", diff: 3, ref: "民數記 20:11" },
+            { q: "誰接續以利亞的職分？", options: ["以利沙", "基哈西", "耶戶", "阿摩司"], a: 0, cat: "yellow", diff: 2, ref: "列王紀下 2:15" },
+            { q: "亞伯拉罕獻以撒的地方是？", options: ["摩利亞山", "西奈山", "亞拉臘山", "尼波山"], a: 0, cat: "yellow", diff: 3, ref: "創世記 22:2" },
+            { q: "誰把約瑟賣到埃及？", options: ["以實瑪利人", "他的哥哥們", "法老", "波提乏"], a: 1, cat: "yellow", diff: 1, ref: "創世記 37:28" },
+            { q: "乃縵元帥在哪條河沐浴七次得醫治？", options: ["幼發拉底河", "底格里斯河", "約旦河", "尼羅河"], a: 2, cat: "yellow", diff: 2, ref: "列王紀下 5:14" },
+            { q: "五旬節講道使三千人悔改的是誰？", options: ["彼得", "保羅", "司提反", "雅各"], a: 0, cat: "yellow", diff: 2, ref: "使徒行傳 2:41" },
+            { q: "誰是路得的第二任丈夫？", options: ["波阿斯", "瑪倫", "基連", "以利米勒"], a: 0, cat: "yellow", diff: 2, ref: "路得記 4:13" },
+
+            // Green (Peace/Shalom) - New Questions (~10)
+            { q: "耶穌說：「我留下平安給你們...」這句話出自哪裡？", options: ["馬太福音", "約翰福音", "路加福音", "馬可福音"], a: 1, cat: "green", diff: 2, ref: "約翰福音 14:27" },
+            { q: "保羅說：「神所賜出人意外的平安」會保守我們的心懷意念。出自？", options: ["腓立比書", "羅馬書", "以弗所書", "哥林多前書"], a: 0, cat: "green", diff: 2, ref: "腓立比書 4:7" },
+            { q: "耶穌出生時，天使頌讚說：在地上平安歸與誰？", options: ["猶太人", "羅馬人", "他所喜悅的人", "所有人類"], a: 2, cat: "green", diff: 1, ref: "路加福音 2:14" },
+            { q: "以賽亞預言彌賽亞的名稱之一是？", options: ["戰爭之王", "和平之君", "律法之主", "先知之首"], a: 1, cat: "green", diff: 1, ref: "以賽亞書 9:6" },
+            { q: "耶穌復活後向門徒顯現，第一句話常說？", options: ["你們好", "願你們平安", "為什麼不信", "我有肉有骨"], a: 1, cat: "green", diff: 1, ref: "約翰福音 20:19" },
+            { q: "聖靈的果子包含仁愛、喜樂和？", options: ["忍耐", "溫柔", "平安", "節制"], a: 2, cat: "green", diff: 1, ref: "加拉太書 5:22" },
+            { q: "登山寶訓中說：什麼樣的人有福了，因為他們必稱為神的兒子？", options: ["使人和睦的人", "虛心的人", "溫柔的人", "清心的人"], a: 0, cat: "green", diff: 2, ref: "馬太福音 5:9" },
+            { q: "誰在獻祭時說：「耶和華沙龍」（耶和華賜平安）？", options: ["摩西", "基甸", "大衛", "亞伯拉罕"], a: 1, cat: "green", diff: 3, ref: "士師記 6:24" },
+            { q: "詩篇說：愛你律法的人有大...？", options: ["財富", "智慧", "平安", "權力"], a: 2, cat: "green", diff: 2, ref: "詩篇 119:165" },
+            { q: "耶穌說：在世上你們有苦難，但在我裡面有...？", options: ["成功", "平安", "榮耀", "長壽"], a: 1, cat: "green", diff: 1, ref: "約翰福音 16:33" }
         ];
 
         let state = {
@@ -642,7 +721,7 @@
                 ui.questionModal.classList.add('hidden');
                 ui.qRefContainer.classList.remove('fade-in-up');
                 resolveTurn(isCorrect, q);
-            }, 2500);
+            }, 1000);
         };
 
         function resetGame() {
@@ -702,13 +781,30 @@
                 state.deck = [...fullQuestionBank]; 
             }
 
-            let handIndices = [];
-            while(handIndices.length < 3) {
-                let r = Math.floor(Math.random() * state.deck.length);
-                if(handIndices.indexOf(r) === -1) handIndices.push(r);
+            // Strategy: One of each difficulty (1, 2, 3 stars)
+            const diff1 = state.deck.filter(q => q.diff === 1);
+            const diff2 = state.deck.filter(q => q.diff === 2);
+            const diff3 = state.deck.filter(q => q.diff === 3);
+
+            let handQuestions = [];
+
+            if (diff1.length > 0 && diff2.length > 0 && diff3.length > 0) {
+                const q1 = diff1[Math.floor(Math.random() * diff1.length)];
+                const q2 = diff2[Math.floor(Math.random() * diff2.length)];
+                const q3 = diff3[Math.floor(Math.random() * diff3.length)];
+                handQuestions = [q1, q2, q3];
+            } else {
+                // Fallback if ran out of specific tiers
+                let handIndices = [];
+                while(handIndices.length < 3) {
+                    let r = Math.floor(Math.random() * state.deck.length);
+                    if(handIndices.indexOf(r) === -1) handIndices.push(r);
+                }
+                handQuestions = handIndices.map(i => state.deck[i]);
             }
-            
-            let handQuestions = handIndices.map(i => state.deck[i]);
+
+            // Shuffle display order
+            handQuestions.sort(() => Math.random() - 0.5);
 
             handQuestions.forEach((randomQ) => {
                 const card = document.createElement('div');
@@ -727,6 +823,13 @@
                     icon = '💙';
                     label = '盼望';
                     shadowClass = 'shadow-blue-900/50';
+                } else if (randomQ.cat === 'green') {
+                    // NEW GREEN STYLE
+                    bgClass = 'bg-gradient-to-br from-green-600 to-green-800 border-green-900';
+                    textClass = 'text-green-100';
+                    icon = '🌿';
+                    label = '平安';
+                    shadowClass = 'shadow-green-900/50';
                 } else {
                     bgClass = 'bg-gradient-to-br from-yellow-500 to-yellow-700 border-yellow-800';
                     textClass = 'text-yellow-100';
@@ -766,13 +869,16 @@
 
             if (q.cat === 'red') {
                 ui.qCategory.className = "px-4 py-1.5 rounded-full text-sm font-bold text-white bg-red-600 shadow-md";
-                ui.qCategory.innerText = "愛心 (Gospel)";
+                ui.qCategory.innerText = "愛心";
             } else if (q.cat === 'blue') {
                 ui.qCategory.className = "px-4 py-1.5 rounded-full text-sm font-bold text-white bg-blue-600 shadow-md";
-                ui.qCategory.innerText = "盼望 (Prophecy)";
+                ui.qCategory.innerText = "盼望";
+            } else if (q.cat === 'green') {
+                ui.qCategory.className = "px-4 py-1.5 rounded-full text-sm font-bold text-white bg-green-600 shadow-md";
+                ui.qCategory.innerText = "平安";
             } else {
                 ui.qCategory.className = "px-4 py-1.5 rounded-full text-sm font-bold text-white bg-yellow-600 shadow-md";
-                ui.qCategory.innerText = "信心 (History)";
+                ui.qCategory.innerText = "信心";
             }
             
             ui.qDifficulty.innerText = `難度: ${'★'.repeat(q.diff)}`;
@@ -782,7 +888,6 @@
                 const btn = document.createElement('button');
                 btn.className = "w-full text-left p-4 rounded-xl bg-slate-700 hover:bg-slate-600 border border-slate-500 hover:border-blue-400 transition text-lg font-medium text-gray-100 shadow-md";
                 btn.innerText = opt;
-                // Important: Use window.checkAnswer
                 btn.onclick = () => window.checkAnswer(index, btn);
                 ui.optionsContainer.appendChild(btn);
             });
@@ -791,59 +896,99 @@
             startTimer();
         }
 
-        function startTimer() {
-            let width = 100;
-            ui.timerBar.style.width = '100%';
-            ui.timerBar.className = "h-full bg-gradient-to-r from-yellow-400 to-orange-500 w-full shadow-[0_0_10px_rgba(250,204,21,0.5)]";
+        // --- Animation Helper ---
+        function playProjectileAnimation(type, startEl, endEl, callback) {
+            if (!startEl || !endEl) {
+                if (callback) callback();
+                return;
+            }
+
+            const startRect = startEl.getBoundingClientRect();
+            const endRect = endEl.getBoundingClientRect();
+
+            const projectile = document.createElement('div');
+            projectile.className = 'projectile';
             
-            clearInterval(timerInterval);
-            timerInterval = setInterval(() => {
-                width -= 0.25; 
-                ui.timerBar.style.width = width + '%';
-                if (width < 30) {
-                     ui.timerBar.classList.remove('from-yellow-400', 'to-orange-500');
-                     ui.timerBar.classList.add('bg-red-600');
-                }
-                if (width <= 0) {
-                    clearInterval(timerInterval);
-                    window.checkAnswer(-1, null); // Time out
-                }
-            }, 50); 
+            let emoji = '🔮';
+            if (type === 'red') emoji = '🔥';
+            if (type === 'blue') emoji = '💧';
+            if (type === 'yellow') emoji = '⚡';
+            if (type === 'green') emoji = '🌿'; // Peace
+            if (type === 'dark') emoji = '🟣';
+            
+            projectile.innerText = emoji;
+            
+            projectile.style.left = (startRect.left + startRect.width / 2 - 20) + 'px';
+            projectile.style.top = (startRect.top + startRect.height / 2 - 20) + 'px';
+            
+            document.body.appendChild(projectile);
+
+            const animation = projectile.animate([
+                { transform: 'translate(0, 0) scale(1)' },
+                { transform: `translate(${endRect.left - startRect.left}px, ${endRect.top - startRect.top}px) scale(1.5)` }
+            ], {
+                duration: 600,
+                easing: 'cubic-bezier(0.25, 1, 0.5, 1)'
+            });
+
+            animation.onfinish = () => {
+                projectile.remove();
+                if (callback) callback();
+            };
         }
 
         function resolveTurn(isCorrect, q) {
+            const playerEl = document.getElementById('player-sprite');
+            const enemyEl = document.getElementById('enemy-sprite');
+
             if (isCorrect) {
-                let baseDmg = 10;
-                if (q.diff === 2) baseDmg = 25;
-                if (q.diff === 3) baseDmg = 50;
-
-                const chainBonus = state.chain * 3;
-                const totalDmg = baseDmg + chainBonus;
+                const attackType = q.cat; 
                 
-                state.enemyHP -= totalDmg;
-                state.score += totalDmg * 10;
-                state.chain++;
-                state.skillMeter++;
-                
-                if (state.skillMeter >= state.skillMax) {
-                    state.playerHP = Math.min(state.maxPlayerHP, state.playerHP + 40);
-                    showFloatingText("聖靈充滿! +40HP", "#4ade80");
-                    state.skillMeter = 0;
-                }
+                playProjectileAnimation(attackType, playerEl, enemyEl, () => {
+                    let baseDmg = 10;
+                    if (q.diff === 2) baseDmg = 25;
+                    if (q.diff === 3) baseDmg = 50;
 
-                showFloatingText(`-${totalDmg}`, "#ff4444", true);
-                animateEnemyDamage();
+                    const chainBonus = state.chain * 3;
+                    const totalDmg = baseDmg + chainBonus;
+                    
+                    state.enemyHP -= totalDmg;
+                    state.score += totalDmg * 10;
+                    state.chain++;
+                    state.skillMeter++;
+                    
+                    // Special Healing for Green
+                    if (attackType === 'green') {
+                        state.playerHP = Math.min(state.maxPlayerHP, state.playerHP + 30);
+                        showFloatingText("+30 🌿", "#4ade80", false); // Show on player
+                    }
+
+                    if (state.skillMeter >= state.skillMax) {
+                        state.playerHP = Math.min(state.maxPlayerHP, state.playerHP + 40);
+                        showFloatingText("聖靈充滿! +40HP", "#4ade80"); // Show on player (default pos tweaked)
+                        state.skillMeter = 0;
+                    }
+
+                    showFloatingText(`-${totalDmg}`, "#ff4444", true); // On Enemy
+                    animateEnemyDamage();
+                    updateUI();
+                    checkWinLoss();
+                });
 
             } else {
-                const dmg = 15 + (state.level * 2);
-                state.playerHP -= dmg;
-                state.chain = 0;
-                showFloatingText(`受到傷害 -${dmg}`, "#ef4444", false);
-                animatePlayerDamage();
+                playProjectileAnimation('dark', enemyEl, playerEl, () => {
+                    const dmg = 15 + (state.level * 2);
+                    state.playerHP -= dmg;
+                    state.chain = 0;
+                    showFloatingText(`受到傷害 -${dmg}`, "#ef4444", false);
+                    animatePlayerDamage();
+                    updateUI();
+                    checkWinLoss();
+                });
             }
+        }
 
-            updateUI();
-
+        function checkWinLoss() {
             if (state.playerHP <= 0) {
                 setTimeout(() => gameOver(false), 500);
             } else if (state.enemyHP <= 0) {
@@ -858,14 +1003,31 @@
             el.innerText = text;
             el.className = 'damage-text';
             el.style.color = color;
-            el.style.left = onEnemy ? '50%' : '50%';
-            el.style.top = onEnemy ? '30%' : '60%';
-            el.style.transform = 'translate(-50%, 0)';
+            // Adjust position based on target
+            if (onEnemy) {
+                el.style.left = '50%';
+                el.style.top = '30%'; 
+            } else {
+                // Approximate player position (bottom left area)
+                // Since this is fixed pos, we might want to get the player element rect
+                const p = document.getElementById('player-sprite').getBoundingClientRect();
+                el.style.left = (p.left + 20) + 'px';
+                el.style.top = (p.top - 50) + 'px';
+                el.style.position = 'fixed';
+            }
+            // If absolute inside container (default)
+            if(onEnemy) {
+                 el.style.position = 'absolute';
+                 el.style.transform = 'translate(-50%, 0)';
+                 document.getElementById('effect-container').appendChild(el);
+            } else {
+                 document.body.appendChild(el); // Append to body for fixed positioning on player
+            }
             
-            document.getElementById('effect-container').appendChild(el);
             setTimeout(() => el.remove(), 1200);
         }
 
+        // ... existing animation functions ...
         function animateEnemyDamage() {
             ui.enemySprite.classList.add('shake');
             setTimeout(() => ui.enemySprite.classList.remove('shake'), 500);
